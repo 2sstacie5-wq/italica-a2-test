@@ -60,7 +60,7 @@ app.post("/api/submit", (req, res) => {
     audioPath: null,
   };
   store.insert(submission);
-  res.json({ id });
+  res.json({ id, autoScore, maxAuto: maxAutoScore() });
 });
 
 // ---------- Upload audio (parte orale) ----------

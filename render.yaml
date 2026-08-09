@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: italica-a2-test
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DATA_DIR
+        value: /data
+    disk:
+      name: italica-a2-data
+      mountPath: /data
+      sizeGB: 1

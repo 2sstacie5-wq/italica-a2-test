@@ -88,8 +88,7 @@
       <p>${esc(content.intro.firstParagraphUk)}</p>
       ${content.intro.bodyIt.map((p) => `<p>${esc(p)}</p>`).join("")}
       <h2 style="font-size:18px;">${esc(content.intro.howItWorksTitle)}</h2>
-      <p><em>${esc(content.intro.howItWorks)}</em></p>
-      <h2 style="font-size:18px;">${esc(content.intro.beforeStartTitle)}</h2>
+${content.intro.howItWorks.map((p) => `<p><em>${esc(p)}</em></p>`).join("")}      <h2 style="font-size:18px;">${esc(content.intro.beforeStartTitle)}</h2>
       <div class="notice">
         <ul class="plain">
           ${content.intro.beforeStart.map((li) => `<li>${esc(li)}</li>`).join("")}

@@ -116,7 +116,7 @@ app.get("/api/admin/submissions", requireAdmin, (req, res) => {
 app.get("/api/admin/submissions/:id", requireAdmin, (req, res) => {
   const sub = store.getById(req.params.id);
   if (!sub) return res.status(404).json({ error: "Non trovata" });
-  res.json({ submission: sub, content });
+  res.json({ submission: sub, content, maxAuto: maxAutoScore() });
 });
 
 app.post("/api/admin/submissions/:id/grade", requireAdmin, (req, res) => {

@@ -437,10 +437,14 @@
 
   function renderDone() {
     topbar.style.display = "none";
-    const scoreHtml = (state.autoScore !== undefined && state.maxAuto !== undefined) ? `
+    const hasScore = state.autoScore !== undefined && state.maxAuto !== undefined;
+    const scoreHtml = hasScore ? `
       <div class="notice" style="text-align:left;">
-        <p style="margin:0 0 8px;"><strong>Punteggio provvisorio: ${state.autoScore}/${state.maxAuto}</strong> nelle parti a correzione automatica (grammatica, lettura Vero/Falso, lessico, uso della lingua).</p>
-        <p style="margin:0;">Le domande aperte, il testo scritto e la parte orale saranno valutati dalla tua insegnante — il punteggio finale su 100 arriverà dopo la sua correzione.</p>
+        <div class="score-row">
+          <span>Punteggio automatico:</span>
+          <span class="score-pill">${state.autoScore}/${state.maxAuto}</span>
+        </div>
+        <p style="margin:0;">Questo è il punteggio delle parti a correzione automatica (grammatica, lettura Vero/Falso, lessico, uso della lingua). <strong>Le domande aperte, il testo scritto e la parte orale saranno corrette dalla tua insegnante</strong>: il punteggio finale su 100 arriverà dopo la sua valutazione.</p>
       </div>
     ` : "";
     app.innerHTML = `
@@ -467,6 +471,7 @@
       const elapsed = (Date.now() - saved.startedAt) / 1000;
       if (elapsed < content.totalMinutes * 60) {
         state.studentName = saved.studentName;
+        state.startedAt = saved.startedAt;
         state.currentPart = saved.currentPart || 0;
         state.answers = saved.answers || {};
         state.screen = "quiz";

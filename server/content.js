@@ -1,9 +1,9 @@
 // Contenuto completo del test — le risposte corrette NON vengono mai inviate al client.
-// Struttura pensata per generare dinamicamente sia il questionario (frontend)
-// sia la correzione automatica (backend).
-
 const content = {
- intro: {
+  title: "🇮🇹 Test di LIVELLO A2",
+  totalMinutes: 90,
+  totalPoints: 100,
+  intro: {
     firstParagraphUk: "Простір italica вітає тебе на фінальному тестуванні курсу A2!",
     bodyIt: [
       "Перш за все — видихни 😌 Це не іспит, який має тебе злякати, а шанс подивитися на себе збоку і зрозуміти, скільки всього ти вже вмієш. Згадай свій перший урок: тоді навіть \"Come ti chiami?\" здавалося космічною фізикою, а зараз ти читаєш, слухаєш, говориш і будуєш речення італійською. Це реально крутий шлях, і ти вже на фініші!",
@@ -22,7 +22,7 @@ const content = {
     ],
     closing: "❤️ Ми віримо в тебе! Не переживай через окремі запитання — цей тест не про ідеальність, а про твій прогрес. А прогрес у тебе є, і чималий.",
     signOff: "In bocca al lupo! 🇮🇹",
- 
+  },
   parts: [
     {
       id: "grammatica",

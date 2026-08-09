@@ -88,7 +88,8 @@
       <p>${esc(content.intro.firstParagraphUk)}</p>
       ${content.intro.bodyIt.map((p) => `<p>${esc(p)}</p>`).join("")}
       <h2 style="font-size:18px;">${esc(content.intro.howItWorksTitle)}</h2>
-${content.intro.howItWorks.map((p) => `<p><em>${esc(p)}</em></p>`).join("")}      <h2 style="font-size:18px;">${esc(content.intro.beforeStartTitle)}</h2>
+      ${content.intro.howItWorks.map((p) => `<p><em>${esc(p)}</em></p>`).join("")}
+      <h2 style="font-size:18px;">${esc(content.intro.beforeStartTitle)}</h2>
       <div class="notice">
         <ul class="plain">
           ${content.intro.beforeStart.map((li) => `<li>${esc(li)}</li>`).join("")}
@@ -411,6 +412,8 @@ ${content.intro.howItWorks.map((p) => `<p><em>${esc(p)}</em></p>`).join("")}    
       });
       const data = await res.json();
       state.submissionId = data.id;
+      state.autoScore = data.autoScore;
+      state.maxAuto = data.maxAuto;
       if (audioBlob && data.id) {
         const fd = new FormData();
         const ext = (audioBlob.type.split("/")[1] || "webm").split(";")[0];
@@ -434,12 +437,21 @@ ${content.intro.howItWorks.map((p) => `<p><em>${esc(p)}</em></p>`).join("")}    
 
   function renderDone() {
     topbar.style.display = "none";
+    const scoreHtml = (state.autoScore !== undefined && state.maxAuto !== undefined) ? `
+      <div class="notice" style="text-align:left;">
+        <p style="margin:0 0 8px;"><strong>Punteggio provvisorio: ${state.autoScore}/${state.maxAuto}</strong> nelle parti a correzione automatica (grammatica, lettura Vero/Falso, lessico, uso della lingua).</p>
+        <p style="margin:0;">Le domande aperte, il testo scritto e la parte orale saranno valutati dalla tua insegnante — il punteggio finale su 100 arriverà dopo la sua correzione.</p>
+      </div>
+    ` : "";
     app.innerHTML = `
       <div class="center">
         <div class="big-emoji">✅</div>
         <h1>Grazie, ${esc(state.studentName)}!</h1>
         <p>Il tuo test è stato inviato correttamente alla tua insegnante.</p>
-        <p class="muted">Riceverai i risultati e un feedback personalizzato a breve.</p>
+      </div>
+      ${scoreHtml}
+      <div class="center">
+        <p class="muted">Riceverai i risultati completi e un feedback personalizzato a breve.</p>
         <p><em>In bocca al lupo per il livello B1! 🇮🇹</em></p>
       </div>
     `;
@@ -455,7 +467,6 @@ ${content.intro.howItWorks.map((p) => `<p><em>${esc(p)}</em></p>`).join("")}    
       const elapsed = (Date.now() - saved.startedAt) / 1000;
       if (elapsed < content.totalMinutes * 60) {
         state.studentName = saved.studentName;
-        state.startedAt = saved.startedAt;
         state.currentPart = saved.currentPart || 0;
         state.answers = saved.answers || {};
         state.screen = "quiz";

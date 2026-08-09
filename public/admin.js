@@ -220,7 +220,7 @@
 
     html += `
       <div class="detail-section">
-        <p>Punteggio automatico: <span class="score-pill">${sub.autoScore}/${content.totalPoints}</span></p>
+        <p>Punteggio automatico: <span class="score-pill">${sub.autoScore}/${data.maxAuto}</span></p>
         <button class="btn" id="saveGradeBtn">Salva valutazione</button>
         <span id="saveStatus" class="muted" style="margin-left:12px;"></span>
       </div>

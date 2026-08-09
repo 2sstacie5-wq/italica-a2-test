@@ -3,26 +3,26 @@
 // sia la correzione automatica (backend).
 
 const content = {
-  title: "🇮🇹 Test di LIVELLO A2",
-  totalMinutes: 90,
-  totalPoints: 100,
-  intro: {
-    // Il primo paragrafo resta in ucraino su richiesta del cliente.
+ intro: {
     firstParagraphUk: "Простір italica вітає тебе на фінальному тестуванні курсу A2!",
     bodyIt: [
-      "Prima di tutto: respira 😌 Non è un esame che deve spaventarti, ma un'occasione per guardarti da fuori e capire quanto hai già imparato. Ricorda la tua prima lezione: allora anche \"Come ti chiami?\" sembrava una domanda impossibile, e adesso leggi, ascolti, parli e costruisci frasi in italiano. È un percorso davvero fantastico, e sei già al traguardo!",
+      "Перш за все — видихни 😌 Це не іспит, який має тебе злякати, а шанс подивитися на себе збоку і зрозуміти, скільки всього ти вже вмієш. Згадай свій перший урок: тоді навіть \"Come ti chiami?\" здавалося космічною фізикою, а зараз ти читаєш, слухаєш, говориш і будуєш речення італійською. Це реально крутий шлях, і ти вже на фініші!",
     ],
-    howItWorksTitle: "Come si svolgerà il test?",
-    howItWorks: "Il test è composto da 7 parti (la lettura è divisa in due testi) e durerà circa 90 minuti. Nella parte finale dovrai scrivere un breve testo e registrare un messaggio vocale: all'inizio il sito chiederà il permesso di usare il microfono, è normale, nessun problema 🎙️ Svolgi gli esercizi nell'ordine indicato e tieni d'occhio il tempo in alto.",
-    beforeStartTitle: "Prima di iniziare",
+    howItWorksTitle: "Як проходитиме тест?",
+    howItWorks: [
+      "Він складається з 7 частин (читання поділено на два тексти) і займе приблизно 90 хвилин.",
+      "Також на тебе чекають ще дві частини: письмова — де треба самостійно написати текст, і усна — де треба записати голосову відповідь. Перед початком сайт попросить дозвіл на мікрофон, це нормально, нічого страшного 🎙️",
+      "Читай завдання уважно, подумай над відповіддю — і тільки тоді рухайся далі. Поспіх тут не потрібен.",
+    ],
+    beforeStartTitle: "Перед початком",
     beforeStart: [
-      "trova un posto tranquillo, dove nessuno ti disturberà;",
-      "assicurati che la connessione internet non ti lasci nel momento più importante;",
-      "controlla che il microfono funzioni, ti servirà per l'ultima parte.",
+      "знайди спокійне місце, де тебе ніхто не смикатиме;",
+      "переконайся, що інтернет не підведе в найважливіший момент;",
+      "видихни ще раз — ти знаєш набагато більше, ніж тобі здається.",
     ],
-    closing: "❤️ Crediamo in te! Non preoccuparti per qualche domanda difficile: questo test non riguarda la perfezione, ma il tuo progresso.",
+    closing: "❤️ Ми віримо в тебе! Не переживай через окремі запитання — цей тест не про ідеальність, а про твій прогрес. А прогрес у тебе є, і чималий.",
     signOff: "In bocca al lupo! 🇮🇹",
-  },
+ 
   parts: [
     {
       id: "grammatica",

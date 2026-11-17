@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: italica-a2-test
+    name: italica-b1-test
     runtime: node
     plan: free
     buildCommand: npm install
@@ -11,6 +11,6 @@ services:
       - key: DATA_DIR
         value: /data
     disk:
-      name: italica-a2-data
+      name: italica-b1-data
       mountPath: /data
       sizeGB: 1

@@ -1,7 +1,7 @@
 {
-  "name": "italica-a2-test",
+  "name": "italica-b1-test",
   "version": "1.0.0",
-  "description": "Test interattivo di livello A2 - ITALICA",
+  "description": "Test interattivo di fine corso B1 - ITALICA",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

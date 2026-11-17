@@ -1,86 +1,51 @@
-# ITALICA — Test di livello A2 (app interattiva)
+# ITALICA — Test di fine corso B1 (app interattiva)
 
-App web che fa svolgere agli studenti il test finale A2 online: 7 parti (grammatica,
-due testi di lettura, lessico, uso della lingua, produzione scritta, produzione orale
-con registrazione audio dal microfono), timer di 90 minuti, e un pannello admin dove
-tu correggi le parti aperte/scritte/orali e ascolti gli audio.
+Stessa app del test A2, con il contenuto del "Test di fine corso B1" e nuovi tipi di esercizio.
 
-## Struttura del progetto
+## Struttura del test
+
+| Parte | Tipo | Punti | Correzione |
+| --- | --- | --- | --- |
+| 1 — Scegli la risposta corretta | 34 domande a/b/c | 34 | automatica |
+| 2 — Vero o Falso | 8 | 8 | automatica |
+| 3 — Abbinamento | 8 situazioni → reazioni a–h | 8 | automatica |
+| 4 — Riordina le parole | 5 frasi da comporre con le tessere | 10 | automatica (+ "accetta comunque") |
+| 5 — Completa le frasi | 16 caselle (5A–5D) | 16 | automatica (+ "accetta comunque") |
+| 6 — Completa il testo | lettera con 14 verbi | 14 | automatica (+ "accetta comunque") |
+| 7 — Continua la frase | 5 risposte libere | 10 | insegnante (0–2 ciascuna) |
+| Parte finale | 3 testi scritti + 3 registrazioni audio | — | insegnante: sufficiente / insufficiente |
+
+- Timer di **70 minuti** per le Parti 1–7. Allo scadere le risposte vengono inviate e lo studente passa
+  alla Parte finale, che non ha limite di tempo. Dalla Parte finale non si torna indietro.
+- Le Parti 1–7 vengono salvate sul server già al passaggio alla Parte finale; ogni registrazione
+  audio viene caricata subito dopo averla fermata. Se lo studente chiude la pagina, non perde nulla.
+- Correzione automatica tollerante: maiuscole, punteggiatura, apostrofi e **accenti mancanti** non
+  contano (es. "e successa" = "è successa"). Le varianti accettate sono in `server/content.js`.
+- Certificato B1: almeno **60/100** e Parte finale **sufficiente**. Il pannello admin lo calcola.
+
+## File
 
 ```
-server.js              -> server Express (API + file statici)
-server/content.js       -> TUTTO il contenuto del test (domande, testi, risposte corrette)
-server/grading.js       -> correzione automatica (scelta multipla, vero/falso, completamento)
-server/store.js         -> salvataggio delle consegne su file JSON (data/submissions.json)
-public/index.html+app.js -> l'app che vede lo studente
-public/admin.html+admin.js -> il pannello che vedi tu
-data/                    -> creata automaticamente: risposte + audio degli studenti
+server/content.js   -> tutto il contenuto: domande, testi, risposte accettate
+server/grading.js   -> correzione automatica
+server.js           -> API + pagine
+public/app.js       -> app studente
+public/admin.js     -> pannello insegnante (/admin)
 ```
 
-Per modificare domande, testi o punteggi in futuro, basta editare `server/content.js`
-(le risposte corrette non vengono mai inviate al browser dello studente).
-
-## Come funziona il punteggio
-
-- Punteggio automatico (55 punti): grammatica (20), vero/falso lettura (5+5), lessico (10),
-  uso della lingua (15).
-- Punteggio manuale, da assegnare tu nel pannello admin (45 punti): domande aperte di
-  lettura (10), produzione scritta (20, griglia a 4 criteri), produzione orale (15,
-  griglia a 3 criteri + audio).
-- Totale: 100 punti.
-
-## Provarla in locale
+## In locale
 
 ```
 npm install
 npm start
 ```
 
-Poi apri `http://localhost:3000` (test studente) e `http://localhost:3000/admin`
-(pannello insegnante — password di default `italica2026`, la cambi con la variabile
-d'ambiente `ADMIN_PASSWORD`, vedi sotto).
+Studente: `http://localhost:3000` · Insegnante: `http://localhost:3000/admin`
+(password = variabile d'ambiente `ADMIN_PASSWORD`, default `italica2026`).
 
 ## Deploy su Render
 
-1. **Crea un repository GitHub** con tutto il contenuto di questa cartella (esclusi
-   `node_modules` e `data`, già ignorati da `.gitignore`) e fai il push.
-2. Su [render.com](https://render.com), **New + → Web Service**, collega il repository.
-3. Render riconosce automaticamente `render.yaml` (Blueprint) con questi valori:
-   - Build command: `npm install`
-   - Start command: `npm start`
-   - Un disco persistente da 1GB montato su `/data`
-4. Nella sezione **Environment**, imposta `ADMIN_PASSWORD` con una password a tua
-   scelta (obbligatorio: se non lo fai, resta quella di default `italica2026`, che è
-   pubblica in questo README — cambiala prima di condividere il link con gli studenti).
-5. Fai deploy. Render ti darà un URL tipo `https://italica-a2-test.onrender.com` — è
-   quello da mandare agli studenti. Il pannello insegnante è allo stesso indirizzo con
-   `/admin` in fondo.
-
-### ⚠️ Nota importante sullo storage (dischi persistenti)
-
-Il piano **Free** di Render NON supporta dischi persistenti: il filesystem viene
-azzerato a ogni riavvio/deploy del servizio, quindi le consegne degli studenti
-(risposte e audio) andrebbero perse quando il servizio si riavvia (anche solo per
-inattività). Per la produzione ho preparato `render.yaml` con un disco da 1GB, ma
-funziona solo su un piano **Starter o superiore** (a pagamento).
-
-Due strade:
-- **Test rapido / poche persone**: usa il piano Free, ma scarica/controlla i risultati
-  dal pannello admin subito dopo che tutti hanno finito, prima che il servizio vada in
-  sleep e si riavvii.
-- **Uso continuativo con più classi**: passa a un piano con disco persistente (Starter),
-  così `data/` sopravvive ai riavvii.
-
-## Sicurezza del pannello admin
-
-La protezione è volutamente semplice (una sola password condivisa, pensata per un uso
-personale/di classe): non usarla per dati sensibili oltre alle risposte del test.
-Tieni privato il link admin e cambia la password di default prima di andare online.
-
-## Requisiti lato studente
-
-- Browser aggiornato (Chrome, Safari, Firefox, Edge) su desktop o mobile.
-- Connessione HTTPS (Render la fornisce automaticamente) — necessaria per l'accesso al
-  microfono nella parte orale.
-- Al momento della parte orale, il browser chiederà il permesso di usare il microfono:
-  lo studente deve accettare per poter registrare.
+New + → Web Service → questo repository, branch del test B1 → Build `npm install`, Start
+`npm start` → in Environment imposta `ADMIN_PASSWORD`. Valgono le stesse note sul disco
+persistente del test A2: sul piano Free i dati si azzerano ai riavvii, quindi scarica/correggi
+le prove subito oppure usa un piano con disco (render.yaml lo monta su `/data`).

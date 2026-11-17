@@ -18,18 +18,13 @@ app.use(express.static(path.join(__dirname, "public")));
 function publicContent() {
   const clone = JSON.parse(JSON.stringify(content));
   for (const part of clone.parts) {
-    if (part.items) {
-      for (const item of part.items) {
-        delete item.correct;
-        delete item.accepted;
-      }
+    for (const item of part.items || []) {
+      delete item.correct;
+      delete item.accepted;
+      delete item.focus;
     }
-    if (part.vf) {
-      for (const v of part.vf) delete v.correct;
-    }
-    if (part.open) {
-      for (const o of part.open) delete o.sample;
-    }
+    for (const v of part.vf || []) delete v.correct;
+    delete part.criteria;
   }
   return clone;
 }
@@ -38,9 +33,17 @@ app.get("/api/content", (req, res) => {
   res.json(publicContent());
 });
 
-// ---------- Invio risposte (testo) ----------
+function sumScores(obj) {
+  let total = 0;
+  for (const partId of Object.keys(obj || {})) {
+    for (const key of Object.keys(obj[partId] || {})) total += Number(obj[partId][key]) || 0;
+  }
+  return total;
+}
+
+// ---------- Invio parti 1–7 ----------
 app.post("/api/submit", (req, res) => {
-  const { studentName, answers, startedAt } = req.body || {};
+  const { studentName, answers, startedAt, timedOut } = req.body || {};
   if (!studentName || !String(studentName).trim()) {
     return res.status(400).json({ error: "Nome mancante" });
   }
@@ -48,44 +51,62 @@ app.post("/api/submit", (req, res) => {
   const id = crypto.randomUUID();
   const submission = {
     id,
+    level: content.level,
     studentName: String(studentName).trim(),
     startedAt: startedAt || null,
     submittedAt: new Date().toISOString(),
+    timedOut: !!timedOut,
     answers: answers || {},
     autoScore,
     autoDetails: details,
-    manualScores: {}, // { partId: { criterionKeyOrItemId: points } }
+    manualScores: {}, // parti aperte: { partId: { itemId: punti } }
+    overrides: {}, // risposte automatiche accettate a mano: { partId: { itemId: punti } }
     manualTotal: 0,
+    finalWriting: {},
+    finalSubmittedAt: null,
+    finalVerdict: null, // "sufficiente" | "insufficiente" | null
+    teacherNote: "",
     status: "in_attesa", // in_attesa | valutato
-    audioPath: null,
+    audio: {}, // { slotId: filename }
   };
   store.insert(submission);
   res.json({ id, autoScore, maxAuto: maxAutoScore() });
 });
 
-// ---------- Upload audio (parte orale) ----------
+// ---------- Invio parte finale (testi scritti) ----------
+app.post("/api/submit-final", (req, res) => {
+  const { submissionId, writing } = req.body || {};
+  const sub = store.getById(submissionId);
+  if (!sub) return res.status(404).json({ error: "Submission non trovata" });
+  store.update(submissionId, { finalWriting: writing || {}, finalSubmittedAt: new Date().toISOString() });
+  res.json({ ok: true });
+});
+
+// ---------- Upload audio (una registrazione per domanda orale) ----------
 const upload = multer({
-  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
+  limits: { fileSize: 40 * 1024 * 1024 },
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, store.AUDIO_DIR),
     filename: (req, file, cb) => {
-      const id = req.body.submissionId || "unknown";
-      const ext = (file.mimetype && file.mimetype.split("/")[1]) || "webm";
-      cb(null, `${id}.${ext.split(";")[0]}`);
+      const id = String(req.body.submissionId || "unknown").replace(/[^a-zA-Z0-9-]/g, "");
+      const slot = String(req.body.slot || "orale").replace(/[^a-zA-Z0-9_-]/g, "");
+      const ext = ((file.mimetype && file.mimetype.split("/")[1]) || "webm").split(";")[0];
+      cb(null, `${id}_${slot}.${ext}`);
     },
   }),
 });
 
 app.post("/api/submit-audio", upload.single("audio"), (req, res) => {
-  const { submissionId } = req.body;
+  const { submissionId, slot } = req.body;
   const sub = store.getById(submissionId);
   if (!sub) return res.status(404).json({ error: "Submission non trovata" });
   if (!req.file) return res.status(400).json({ error: "File audio mancante" });
-  store.update(submissionId, { audioPath: req.file.filename });
+  const audio = { ...(sub.audio || {}), [slot || "orale"]: req.file.filename };
+  store.update(submissionId, { audio });
   res.json({ ok: true });
 });
 
-// ---------- Admin: middleware password ----------
+// ---------- Admin ----------
 function requireAdmin(req, res, next) {
   const pw = req.header("x-admin-password") || req.query.pw;
   if (pw !== ADMIN_PASSWORD) return res.status(401).json({ error: "Password errata" });
@@ -99,18 +120,24 @@ app.post("/api/admin/login", (req, res) => {
 });
 
 app.get("/api/admin/submissions", requireAdmin, (req, res) => {
-  const list = store.readAll().map((s) => ({
-    id: s.id,
-    studentName: s.studentName,
-    submittedAt: s.submittedAt,
-    autoScore: s.autoScore,
-    manualTotal: s.manualTotal,
-    grandTotal: s.autoScore + (s.manualTotal || 0),
-    status: s.status,
-    hasAudio: !!s.audioPath,
-  }));
+  const list = store.readAll().map((s) => {
+    const grandTotal = s.autoScore + (s.manualTotal || 0);
+    return {
+      id: s.id,
+      studentName: s.studentName,
+      submittedAt: s.submittedAt,
+      autoScore: s.autoScore,
+      manualTotal: s.manualTotal,
+      grandTotal,
+      status: s.status,
+      finalDone: !!s.finalSubmittedAt,
+      audioCount: Object.keys(s.audio || {}).length,
+      finalVerdict: s.finalVerdict,
+      certificate: s.status === "valutato" ? grandTotal >= content.passPoints && s.finalVerdict === "sufficiente" : null,
+    };
+  });
   list.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-  res.json({ list, maxAuto: maxAutoScore(), maxManual: maxManualScore(), maxTotal: content.totalPoints });
+  res.json({ list, maxAuto: maxAutoScore(), maxManual: maxManualScore(), maxTotal: content.totalPoints, passPoints: content.passPoints });
 });
 
 app.get("/api/admin/submissions/:id", requireAdmin, (req, res) => {
@@ -120,26 +147,27 @@ app.get("/api/admin/submissions/:id", requireAdmin, (req, res) => {
 });
 
 app.post("/api/admin/submissions/:id/grade", requireAdmin, (req, res) => {
-  const { manualScores } = req.body || {};
+  const { manualScores, overrides, finalVerdict, teacherNote } = req.body || {};
   const sub = store.getById(req.params.id);
   if (!sub) return res.status(404).json({ error: "Non trovata" });
-  let manualTotal = 0;
-  for (const partId of Object.keys(manualScores || {})) {
-    for (const key of Object.keys(manualScores[partId] || {})) {
-      const v = Number(manualScores[partId][key]) || 0;
-      manualTotal += v;
-    }
-  }
-  const updated = store.update(sub.id, { manualScores, manualTotal, status: "valutato" });
-  res.json({ submission: updated });
+  const manualTotal = sumScores(manualScores) + sumScores(overrides);
+  const updated = store.update(sub.id, {
+    manualScores: manualScores || {},
+    overrides: overrides || {},
+    manualTotal,
+    finalVerdict: finalVerdict || null,
+    teacherNote: teacherNote || "",
+    status: "valutato",
+  });
+  res.json({ submission: updated, total: updated.autoScore + manualTotal });
 });
 
-app.get("/api/admin/audio/:id", (req, res) => {
-  const pw = req.query.pw;
-  if (pw !== ADMIN_PASSWORD) return res.status(401).send("Non autorizzato");
+app.get("/api/admin/audio/:id/:slot", (req, res) => {
+  if (req.query.pw !== ADMIN_PASSWORD) return res.status(401).send("Non autorizzato");
   const sub = store.getById(req.params.id);
-  if (!sub || !sub.audioPath) return res.status(404).send("Audio non trovato");
-  res.sendFile(path.join(store.AUDIO_DIR, sub.audioPath));
+  const file = sub && sub.audio && sub.audio[req.params.slot];
+  if (!file) return res.status(404).send("Audio non trovato");
+  res.sendFile(path.join(store.AUDIO_DIR, file));
 });
 
 // ---------- Pagine ----------
@@ -152,6 +180,6 @@ app.get("*", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`ITALICA A2 test in ascolto su http://localhost:${PORT}`);
-  console.log(`Admin: http://localhost:${PORT}/admin (password: ${ADMIN_PASSWORD})`);
+  console.log(`ITALICA ${content.level} test in ascolto su http://localhost:${PORT}`);
+  console.log(`Admin: http://localhost:${PORT}/admin`);
 });

@@ -18,3 +18,10 @@ tr.row:hover { background: #faf6f0; }
 .rubric-row input { width: 70px; padding:6px 8px; border-radius:6px; border:1px solid var(--border); }
 .score-pill { display:inline-block; background: var(--orange-light); color: var(--orange); font-weight:700; padding:6px 14px; border-radius:999px; }
 .backlink { display:inline-block; margin-bottom:16px; color: var(--orange); cursor:pointer; font-weight:600; }
+.summary-box { background: var(--orange-light); border-radius: 12px; padding: 14px 18px; margin: 14px 0 6px; position: sticky; top: 64px; z-index: 5; }
+.summary-box .score-row { margin-bottom: 6px; }
+.override { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 13px; color: var(--orange-dark); cursor: pointer; }
+.pt { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; margin-right: 6px; }
+.detail-section h4 { margin: 18px 0 8px; }
+audio { width: 100%; margin-top: 8px; }
+.rubric-row input[type=radio], .rubric-row input[type=checkbox], .override input { width: auto; padding: 0; }
